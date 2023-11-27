@@ -1,65 +1,65 @@
 name: Deploy website
 on:
-push:
-branches:
-- master
+  push:
+    branches:
+      - master
 jobs:
-test:
-runs-on: ubuntu-latest
-steps:
-- name: Get code
-uses: actions/checkout@v3
-- name: Cache dependencies
-uses: actionsUnable to resolve action action/cache, repository not found/cache@v3
-with:
-path: ~/.npm
-key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
-- name: Install dependencies
-run: npm ci
-- name: Lint code
-run: npm run lint
-- name: Test code
-run: npm run test
-build:
-needs: test
-runs-on: ubuntu-latest
-outputs:
-script-file: ${{ steps.publish.outputs.script-file }}
-steps:
-- name: Get code
-uses: actions/checkout@v3
-- name: Cache dependencies
-uses: actions/cache@v3
-with:
-path: ~/.npm
-key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
-- name: Install dependencies
-run: npm ci
-- name: Build website
-run: npm run build
-- name: publish JS filename
-id: publish #id se koristi gore posle steps kako bi se znalo o kom stepu joba se radi
-run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';' #script-file je proizvoljno ime u koje guramo ime fajla
-# i koje outputujemo preko GITHUB OUTPUT, koju zatim guramo gore u script-file
-- name: Upload artifacts
-uses: actions/upload-artifact@v3
-with:
-name: dist-files
-path: dist
-# path: |
-# dist
-# package.json
-deploy:
-needs: build
-runs-on: ubuntu-latest
-steps:
-- name: Get build artifacts
-uses: actions/download-artifact@v3
-with:
-name: dist-files #mora da bude isti name kao za upload artifact gore
-- name: Output contents
-run: ls
-- name: Output filename
-run: echo "${{ needs.build.outputs.script-file }}"
-- name: Deploy
-run: echo "Deploying..."
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: actionsUnable to resolve action action/cache, repository not found/cache@v3
+        with:
+          path: ~/.npm
+          key:  deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+      - name: Test code
+        run: npm run test
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs: 
+      script-file: ${{  steps.publish.outputs.script-file }}
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key:  deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        run: npm run build
+      - name: publish JS filename
+        id: publish #id se koristi gore posle steps kako bi se znalo o kom stepu joba se radi
+        run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';' #script-file je proizvoljno ime u koje guramo ime fajla
+        # i koje outputujemo preko GITHUB OUTPUT, koju zatim guramo gore u script-file
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: dist
+          # path: |
+          #   dist
+          #   package.json
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with: 
+          name: dist-files #mora da bude isti name kao za upload artifact gore
+      - name: Output contents
+        run: ls
+      - name: Output filename
+        run: echo "${{  needs.build.outputs.script-file }}"
+      - name: Deploy
+        run: echo "Deploying..."
